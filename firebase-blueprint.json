@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "A user's profile information, including their role and contact details.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The unique identifier for the user." },
+        "displayName": { "type": "string", "description": "The user's full name." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "photoURL": { "type": "string", "format": "uri", "description": "The user's profile picture URL." },
+        "role": { "type": "string", "enum": ["candidate", "recruiter", "partner", "admin"], "description": "The user's role in the platform." },
+        "bio": { "type": "string", "description": "A short biography of the user." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the profile was created." }
+      },
+      "required": ["uid", "displayName", "email", "role"]
+    },
+    "Job": {
+      "title": "Job",
+      "description": "A job posting created by a recruiter.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the job." },
+        "title": { "type": "string", "description": "The job title." },
+        "company": { "type": "string", "description": "The company name." },
+        "location": { "type": "string", "description": "The job location." },
+        "description": { "type": "string", "description": "The job description." },
+        "salary": { "type": "string", "description": "The salary range." },
+        "type": { "type": "string", "enum": ["full-time", "part-time", "contract", "freelance"], "description": "The job type." },
+        "recruiterUid": { "type": "string", "description": "The UID of the recruiter who posted the job." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the job was posted." }
+      },
+      "required": ["title", "company", "location", "description", "recruiterUid"]
+    },
+    "Application": {
+      "title": "Application",
+      "description": "A job application submitted by a candidate.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the application." },
+        "jobId": { "type": "string", "description": "The ID of the job being applied for." },
+        "candidateUid": { "type": "string", "description": "The UID of the candidate who applied." },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "interviewing", "hired", "rejected"], "description": "The application status." },
+        "resumeUrl": { "type": "string", "format": "uri", "description": "The URL of the candidate's resume." },
+        "coverLetter": { "type": "string", "description": "The candidate's cover letter." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the application was submitted." }
+      },
+      "required": ["jobId", "candidateUid", "status"]
+    },
+    "SecretJob": {
+      "title": "SecretJob",
+      "description": "An internal job order with commission and partner details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique identifier for the secret job." },
+        "title": { "type": "string", "description": "The job title." },
+        "company": { "type": "string", "description": "The company name." },
+        "location": { "type": "string", "description": "The job location." },
+        "description": { "type": "string", "description": "The job description." },
+        "salary": { "type": "string", "description": "The salary range." },
+        "type": { "type": "string", "enum": ["full-time", "part-time", "contract", "freelance"], "description": "The job type." },
+        "commission": { "type": "string", "description": "The commission amount or percentage." },
+        "partnerInCharge": { "type": "string", "description": "The partner responsible for this job order." },
+        "internalNotes": { "type": "string", "description": "Internal notes for recruiters." },
+        "clientContact": { "type": "string", "description": "Client contact information." },
+        "recruiterUid": { "type": "string", "description": "The UID of the recruiter who posted the job." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the job was posted." }
+      },
+      "required": ["title", "company", "location", "description", "recruiterUid", "commission", "partnerInCharge"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user profile data."
+    },
+    "/jobs/{jobId}": {
+      "schema": "Job",
+      "description": "Stores job postings."
+    },
+    "/applications/{applicationId}": {
+      "schema": "Application",
+      "description": "Stores job applications."
+    },
+    "/secret-jobs/{jobId}": {
+      "schema": "SecretJob",
+      "description": "Stores internal job orders with sensitive information."
+    }
+  }
+}
