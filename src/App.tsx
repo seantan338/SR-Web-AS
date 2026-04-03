@@ -11,15 +11,23 @@ import JobSearch from './pages/JobSearch';
 import { FirebaseProvider } from './lib/FirebaseContext';
 import ProtectedRoute from './lib/ProtectedRoute';
 import LegalModal from './components/LegalModal';
+import ChatBot from './components/ChatBot';
+import bgImage from './components/bg-image.png';
 
 export default function App() {
   return (
     <FirebaseProvider>
       <Router>
-        <div className="min-h-screen flex flex-col font-sans text-slate-900 antialiased relative">
-          <Navbar />
-          <LegalModal />
-          <main className="flex-grow">
+        <div 
+          className="min-h-screen flex flex-col font-sans text-slate-900 antialiased relative bg-cover bg-center bg-fixed"
+          style={{ backgroundImage: `url(${bgImage})` }}
+        >
+          <div className="absolute inset-0 bg-slate-900/80 z-0 pointer-events-none" />
+          <div className="relative z-10 flex flex-col min-h-screen">
+            <Navbar />
+            <LegalModal />
+            <ChatBot />
+            <main className="flex-grow">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
@@ -61,6 +69,7 @@ export default function App() {
             </Routes>
           </main>
           <Footer />
+          </div>
         </div>
       </Router>
     </FirebaseProvider>

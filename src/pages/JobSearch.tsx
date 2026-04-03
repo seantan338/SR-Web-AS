@@ -14,6 +14,7 @@ import { useFirebase } from '@/src/lib/FirebaseContext';
 export default function JobSearch() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [locationQuery, setLocationQuery] = useState('');
@@ -25,17 +26,28 @@ export default function JobSearch() {
     const fetchJobs = async () => {
       try {
         const response = await fetch('/api/jobs');
-        if (response.ok) {
-          const jobsData = await response.json() as Job[];
-          setJobs(jobsData);
-          if (jobsData.length > 0 && !selectedJob) {
-            setSelectedJob(jobsData[0]);
+        
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          if (response.ok) {
+            const jobsData = await response.json() as Job[];
+            setJobs(jobsData);
+            setError(null);
+            if (jobsData.length > 0 && !selectedJob) {
+              setSelectedJob(jobsData[0]);
+            }
+          } else {
+            const errorData = await response.json().catch(() => null);
+            const errorMessage = errorData?.details ? `${errorData.error}: ${errorData.details}` : (errorData?.error || 'Failed to fetch jobs');
+            throw new Error(errorMessage);
           }
         } else {
-          throw new Error('Failed to fetch jobs');
+          const text = await response.text();
+          throw new Error('Received non-JSON response from server. The server might be down or misconfigured.');
         }
-      } catch (error) {
-        console.error('Fetch Jobs Error:', error);
+      } catch (err: any) {
+        console.error('Fetch Jobs Error:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -152,6 +164,13 @@ export default function JobSearch() {
           <div className="flex flex-col items-center justify-center h-64">
             <Loader2 className="w-12 h-12 text-orange-500 animate-spin mb-4" />
             <p className="text-slate-500 font-medium">Loading jobs...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64 bg-red-50 rounded-xl border border-red-100 p-8 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+            <h3 className="text-lg font-bold text-red-900 mb-2">Configuration Error</h3>
+            <p className="text-red-700 max-w-lg">{error}</p>
+            <p className="text-red-600 text-sm mt-4">Please check your AI Studio Settings and ensure GOOGLE_SERVICE_ACCOUNT_JSON is configured correctly with the full JSON content.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full relative">

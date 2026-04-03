@@ -34,17 +34,30 @@ export default function AdminControlCenter() {
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(false);
+  const [jobsError, setJobsError] = useState<string | null>(null);
 
   const fetchJobs = async () => {
     setLoadingJobs(true);
     try {
       const response = await fetch('/api/jobs');
-      if (response.ok) {
-        const jobsData = await response.json() as Job[];
-        setJobs(jobsData);
+      
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        if (response.ok) {
+          const jobsData = await response.json() as Job[];
+          setJobs(jobsData);
+          setJobsError(null);
+        } else {
+          const errorData = await response.json().catch(() => null);
+          const errorMessage = errorData?.details ? `${errorData.error}: ${errorData.details}` : (errorData?.error || 'Failed to fetch jobs');
+          throw new Error(errorMessage);
+        }
+      } else {
+        throw new Error('Received non-JSON response from server. The server might be down or misconfigured.');
       }
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
+    } catch (err: any) {
+      console.error('Error fetching jobs:', err);
+      setJobsError(err.message);
     } finally {
       setLoadingJobs(false);
     }

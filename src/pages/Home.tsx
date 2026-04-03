@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import bgImage from '../components/bg-image.png';
+
 export default function Home() {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -24,9 +26,9 @@ export default function Home() {
   };
 
   return (
-    <div className="pt-16 min-h-screen bg-white">
+    <div className="pt-16 min-h-screen bg-transparent">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-slate-900 py-24 lg:py-32">
+      <section className="relative overflow-hidden bg-transparent py-24 lg:py-32">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(249,115,22,0.2),transparent_50%)]" />
         </div>
@@ -68,10 +70,9 @@ export default function Home() {
             >
               <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/5 shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1600880212340-02d956371b27?auto=format&fit=crop&q=80&w=800"
-                  alt="Professional Team"
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
+                  src={bgImage}
+                  alt="Malaysia & Singapore Map"
+                  className="w-full h-full object-cover brightness-75 contrast-125"
                 />
               </div>
               <div className="absolute -top-12 -right-12 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl" />

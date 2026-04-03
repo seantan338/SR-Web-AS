@@ -102,6 +102,13 @@ service cloud.firestore {
              data.status in ['pending', 'reviewed', 'interviewing', 'hired', 'rejected'];
     }
 
+    function isValidCandidateSubmission(data) {
+      return data.keys().hasAll(['candidateName', 'candidateEmail', 'submittedBy', 'submittedAt']) &&
+             data.candidateName is string && data.candidateName.size() > 0 &&
+             isValidEmail(data.candidateEmail) &&
+             data.submittedBy == request.auth.uid;
+    }
+
     function isValidSecretJob(data) {
       return data.keys().hasAll(['title', 'company', 'location', 'description', 'recruiterUid', 'commission', 'partnerInCharge']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
@@ -156,6 +163,14 @@ service cloud.firestore {
         isAdmin()
       );
       allow delete: if isOwner(resource.data.candidateUid) || isAdmin();
+    }
+
+    // Candidate Submissions collection
+    match /candidate-submissions/{submissionId} {
+      allow read: if isRecruiter() || isPartner() || isAdmin();
+      allow create: if (isRecruiter() || isAdmin()) && isValidCandidateSubmission(request.resource.data);
+      allow update: if (isOwner(resource.data.submittedBy) || isAdmin()) && isValidCandidateSubmission(request.resource.data);
+      allow delete: if (isOwner(resource.data.submittedBy) || isAdmin());
     }
   }
 }

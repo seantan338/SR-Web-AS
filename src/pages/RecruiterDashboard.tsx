@@ -14,6 +14,7 @@ export default function RecruiterDashboard() {
   const [activeTab, setActiveTab] = useState<'secret-jobs' | 'submit-candidate'>('secret-jobs');
   const [secretJobs, setSecretJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useFirebase();
 
   // Search and Filter State for Secret Job Board
@@ -38,14 +39,24 @@ export default function RecruiterDashboard() {
     const fetchJobs = async () => {
       try {
         const response = await fetch('/api/jobs');
-        if (response.ok) {
-          const jobsData = await response.json() as Job[];
-          setSecretJobs(jobsData);
+        
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          if (response.ok) {
+            const jobsData = await response.json() as Job[];
+            setSecretJobs(jobsData);
+            setError(null);
+          } else {
+            const errorData = await response.json().catch(() => null);
+            const errorMessage = errorData?.details ? `${errorData.error}: ${errorData.details}` : (errorData?.error || 'Failed to fetch jobs');
+            throw new Error(errorMessage);
+          }
         } else {
-          throw new Error('Failed to fetch jobs');
+          throw new Error('Received non-JSON response from server. The server might be down or misconfigured.');
         }
-      } catch (error) {
-        console.error('Fetch Jobs Error:', error);
+      } catch (err: any) {
+        console.error('Fetch Jobs Error:', err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -318,6 +329,12 @@ export default function RecruiterDashboard() {
                     {loading ? (
                       <div className="flex justify-center py-12">
                         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+                      </div>
+                    ) : error ? (
+                      <div className="flex flex-col items-center justify-center py-12 bg-red-50 rounded-xl border border-red-100 text-center px-4">
+                        <Info className="w-10 h-10 text-red-500 mb-3" />
+                        <h3 className="text-md font-bold text-red-900 mb-1">Configuration Error</h3>
+                        <p className="text-red-700 text-sm max-w-md">{error}</p>
                       </div>
                     ) : filteredSecretJobs.length > 0 ? (
                       <div className="space-y-4">

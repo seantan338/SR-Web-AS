@@ -1,5 +1,4 @@
 import express from 'express';
-import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { google } from 'googleapis';
@@ -27,6 +26,9 @@ async function startServer() {
       console.error('Missing GOOGLE_SHEETS_ID');
       return res.status(500).json({ error: 'Google Sheets ID not configured' });
     }
+    if (!serviceAccountJson) {
+      return res.status(500).json({ error: 'Google Service Account JSON not configured' });
+    }
 
     if (!data || !sheetName) {
       return res.status(400).json({ error: 'Missing data or sheetName in request body' });
@@ -37,20 +39,26 @@ async function startServer() {
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       };
 
-      if (serviceAccountJson) {
-        try {
-          // Basic check to see if it's even a JSON-like string
-          if (!serviceAccountJson.trim().startsWith('{')) {
-            throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file, not just the email address.');
+      try {
+        let jsonString = serviceAccountJson.trim();
+        if (!jsonString.startsWith('{')) {
+          // Try decoding as base64
+          try {
+            jsonString = Buffer.from(jsonString, 'base64').toString('utf-8');
+          } catch (e) {
+            // Ignore base64 decode error
           }
-          authOptions.credentials = JSON.parse(serviceAccountJson);
-        } catch (parseError: any) {
-          console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error:', parseError.message);
-          return res.status(500).json({ 
-            error: 'Invalid Google Service Account configuration',
-            details: parseError.message
-          });
         }
+        if (!jsonString.startsWith('{')) {
+          throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file, not just the email address.');
+        }
+        authOptions.credentials = JSON.parse(jsonString);
+      } catch (parseError: any) {
+        console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error:', parseError.message);
+        return res.status(500).json({ 
+          error: 'Invalid Google Service Account configuration',
+          details: parseError.message
+        });
       }
 
       const auth = new GoogleAuth(authOptions);
@@ -81,29 +89,51 @@ async function startServer() {
     if (!spreadsheetId) {
       return res.status(500).json({ error: 'Google Sheets ID not configured' });
     }
+    if (!serviceAccountJson) {
+      return res.status(500).json({ error: 'Google Service Account JSON not configured' });
+    }
 
     try {
       const authOptions: any = {
         scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
       };
 
-      if (serviceAccountJson) {
-        try {
-          if (!serviceAccountJson.trim().startsWith('{')) {
-            throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file.');
-          }
-          authOptions.credentials = JSON.parse(serviceAccountJson);
-        } catch (parseError: any) {
-          console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error in /api/jobs:', parseError.message);
-          return res.status(500).json({ error: 'Invalid Google Service Account JSON configuration', details: parseError.message });
+      try {
+        let jsonString = serviceAccountJson.trim();
+        if (!jsonString.startsWith('{')) {
+          try {
+            jsonString = Buffer.from(jsonString, 'base64').toString('utf-8');
+          } catch (e) {}
         }
+        if (!jsonString.startsWith('{')) {
+          throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file.');
+        }
+        authOptions.credentials = JSON.parse(jsonString);
+      } catch (parseError: any) {
+        console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error in /api/jobs:', parseError.message);
+        return res.status(500).json({ error: 'Invalid Google Service Account JSON configuration', details: parseError.message });
       }
 
       const auth = new GoogleAuth(authOptions);
       const sheets = google.sheets({ version: 'v4', auth });
+      
+      let sheetName = 'Jobs';
+      try {
+        const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+        if (spreadsheet.data.sheets && spreadsheet.data.sheets.length > 0) {
+          // Check if 'Jobs' exists, otherwise use the first sheet
+          const hasJobsSheet = spreadsheet.data.sheets.some(s => s.properties?.title === 'Jobs');
+          if (!hasJobsSheet) {
+            sheetName = spreadsheet.data.sheets[0].properties?.title || 'Sheet1';
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch spreadsheet info, defaulting to Jobs sheet', e);
+      }
+
       const response = await sheets.spreadsheets.values.get({
         spreadsheetId,
-        range: 'Jobs!A2:Z', // Assuming 'Jobs' sheet and headers in row 1
+        range: `${sheetName}!A2:Z`,
       });
 
       const rows = response.data.values;
@@ -128,9 +158,9 @@ async function startServer() {
       }));
 
       res.json(jobs);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Fetch Jobs Error:', error);
-      res.status(500).json({ error: 'Failed to fetch jobs from Google Sheets' });
+      res.status(500).json({ error: 'Failed to fetch jobs from Google Sheets', details: error.message });
     }
   });
 
@@ -143,27 +173,48 @@ async function startServer() {
     if (!spreadsheetId) {
       return res.status(500).json({ error: 'Google Sheets ID not configured' });
     }
+    if (!serviceAccountJson) {
+      return res.status(500).json({ error: 'Google Service Account JSON not configured' });
+    }
 
     try {
       const authOptions: any = {
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
       };
 
-      if (serviceAccountJson) {
-        try {
-          if (!serviceAccountJson.trim().startsWith('{')) {
-            throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file.');
-          }
-          authOptions.credentials = JSON.parse(serviceAccountJson);
-        } catch (parseError: any) {
-          console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error in /api/post-job:', parseError.message);
-          return res.status(500).json({ error: 'Invalid Google Service Account JSON configuration', details: parseError.message });
+      try {
+        let jsonString = serviceAccountJson.trim();
+        if (!jsonString.startsWith('{')) {
+          try {
+            jsonString = Buffer.from(jsonString, 'base64').toString('utf-8');
+          } catch (e) {}
         }
+        if (!jsonString.startsWith('{')) {
+          throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON must be the FULL JSON content from your service account key file.');
+        }
+        authOptions.credentials = JSON.parse(jsonString);
+      } catch (parseError: any) {
+        console.error('GOOGLE_SERVICE_ACCOUNT_JSON Error in /api/post-job:', parseError.message);
+        return res.status(500).json({ error: 'Invalid Google Service Account JSON configuration', details: parseError.message });
       }
 
       const auth = new GoogleAuth(authOptions);
       const sheets = google.sheets({ version: 'v4', auth });
       
+      let sheetName = 'Jobs';
+      try {
+        const spreadsheet = await sheets.spreadsheets.get({ spreadsheetId });
+        if (spreadsheet.data.sheets && spreadsheet.data.sheets.length > 0) {
+          // Check if 'Jobs' exists, otherwise use the first sheet
+          const hasJobsSheet = spreadsheet.data.sheets.some(s => s.properties?.title === 'Jobs');
+          if (!hasJobsSheet) {
+            sheetName = spreadsheet.data.sheets[0].properties?.title || 'Sheet1';
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch spreadsheet info, defaulting to Jobs sheet', e);
+      }
+
       const row = [
         jobData.title,
         jobData.company,
@@ -180,7 +231,7 @@ async function startServer() {
 
       await sheets.spreadsheets.values.append({
         spreadsheetId,
-        range: 'Jobs!A:Z',
+        range: `${sheetName}!A:Z`,
         valueInputOption: 'RAW',
         requestBody: {
           values: [row],
@@ -196,6 +247,7 @@ async function startServer() {
 
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
