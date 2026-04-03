@@ -66,7 +66,7 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 1 }}
-              className="relative hidden lg:block"
+              className="relative hidden lg:block lg:scale-110 xl:scale-125 transform origin-right"
             >
               <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/5 shadow-2xl">
                 <img
