@@ -147,14 +147,16 @@ async function startServer() {
         title: row[0] || '',
         company: row[1] || '',
         location: row[2] || '',
-        type: row[3] || '',
-        salary: row[4] || '',
-        description: row[5] || '',
-        createdAt: row[6] || new Date().toISOString(),
-        partnerInCharge: row[7] || '',
-        commissionRange: row[8] || '',
-        clientRequirements: row[9] || '',
-        contactDetails: row[10] || '',
+        type: row[3] || '', // Col D
+        salary: row[3] || '', // Col D
+        workingDay: row[4] || '', // Col E
+        workingHours: row[5] || '', // Col F
+        description: row[6] || '', // Col G
+        clientRequirements: row[6] || '', // Col G
+        createdAt: row[7] || new Date().toISOString(), // Col H
+        commissionRange: row[8] || '', // Col I
+        partnerInCharge: row[9] || '', // Col J
+        contactDetails: row[10] || '', // Col K
       }));
 
       res.json(jobs);

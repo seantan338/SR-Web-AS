@@ -192,7 +192,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-slate-200 text-center text-sm text-slate-500">
-          © {new Date().getFullYear()} Sunrise Creative Recruitment. All rights reserved.
+          © 2018 Sunrise Recruit. All rights reserved.
         </div>
       </div>
     </footer>

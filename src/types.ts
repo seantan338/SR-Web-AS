@@ -14,6 +14,8 @@ export interface Job {
   commissionRange?: string;
   clientRequirements?: string;
   contactDetails?: string;
+  workingDay?: string;
+  workingHours?: string;
 }
 
 export interface Application {

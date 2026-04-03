@@ -340,12 +340,7 @@ export default function RecruiterDashboard() {
                       <div className="space-y-4">
                         {filteredSecretJobs.map((job) => (
                           <div key={job.id} className="p-6 rounded-2xl border border-slate-100 hover:border-orange-200 hover:bg-orange-50/10 transition-all group relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4">
-                              <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                                {job.commissionRange || 'N/A'} Commission
-                              </span>
-                            </div>
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                               <div className="space-y-1">
                                 <h3 className="font-bold text-slate-900 text-lg">{job.title}</h3>
                                 <p className="text-sm text-slate-500 flex items-center">
@@ -353,11 +348,10 @@ export default function RecruiterDashboard() {
                                   {job.company} • {job.location}
                                 </p>
                               </div>
-                              <div className="flex items-center space-x-6">
-                                <div className="text-right">
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Partner in Charge</p>
-                                  <p className="text-sm font-bold text-slate-700">{job.partnerInCharge || 'N/A'}</p>
-                                </div>
+                              <div className="flex flex-col items-end space-y-3">
+                                <span className="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                  {job.commissionRange || 'N/A'} Commission
+                                </span>
                                 <div className="flex items-center space-x-2">
                                   <button 
                                     onClick={() => {
@@ -378,17 +372,28 @@ export default function RecruiterDashboard() {
                             
                             <div className="mt-4 pt-4 border-t border-slate-50 grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="flex items-start space-x-2">
-                                <Info className="w-4 h-4 text-slate-300 mt-0.5" />
+                                <DollarSign className="w-4 h-4 text-slate-300 mt-0.5" />
                                 <div>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Censored Requirements (Internal)</p>
-                                  <p className="text-xs text-slate-600 line-clamp-2">{job.clientRequirements || 'No internal notes provided'}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Salary Range</p>
+                                  <p className="text-xs text-slate-600 font-medium">{job.salary || 'Negotiable'}</p>
                                 </div>
                               </div>
+
                               <div className="flex items-start space-x-2">
-                                <Mail className="w-4 h-4 text-slate-300 mt-0.5" />
+                                <Clock className="w-4 h-4 text-slate-300 mt-0.5" />
                                 <div>
-                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Client Contact (Direct)</p>
-                                  <p className="text-xs text-slate-600 font-medium">{job.contactDetails || 'Confidential'}</p>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Working Day & Hours</p>
+                                  <p className="text-xs text-slate-600 font-medium">
+                                    {job.workingDay ? job.workingDay : 'Standard'} {job.workingHours ? `• ${job.workingHours}` : ''}
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-start space-x-2 md:col-span-2">
+                                <Info className="w-4 h-4 text-slate-300 mt-0.5" />
+                                <div>
+                                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Requirements</p>
+                                  <p className="text-xs text-slate-600 whitespace-pre-wrap">{job.clientRequirements || job.description || 'No requirements provided'}</p>
                                 </div>
                               </div>
                             </div>
