@@ -58,7 +58,7 @@ export function Navbar() {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
                     {userProfile?.photoURL ? (
-                      <img src={userProfile.photoURL} alt="" className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
+                      <img src={bg-image.png} alt="" className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
                     ) : (
                       <UserIcon className="w-4 h-4 text-slate-500" />
                     )}
@@ -123,7 +123,7 @@ export function Navbar() {
                     <div className="space-y-3">
                       <div className="flex items-center space-x-3 px-3 py-2 bg-slate-50 rounded-lg">
                         {userProfile?.photoURL ? (
-                          <img src={userProfile.photoURL} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                          <img src={bg-image.png} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
                         ) : (
                           <UserIcon className="w-6 h-6 text-slate-500" />
                         )}
