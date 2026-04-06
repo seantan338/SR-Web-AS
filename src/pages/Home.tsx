@@ -70,7 +70,7 @@ export default function Home() {
             >
               <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/5 shadow-2xl">
                 <img
-                  src={bgImage}
+                  src="/bg-image.png"
                   alt="Malaysia & Singapore Map"
                   className="w-full h-full object-cover brightness-75 contrast-125"
                 />
