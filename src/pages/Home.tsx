@@ -27,8 +27,17 @@ export default function Home() {
 
   return (
     <div className="pt-16 min-h-screen bg-transparent">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-transparent py-24 lg:py-32">
+{/* Hero Section */}
+      <section
+        className="relative overflow-hidden bg-transparent py-24 lg:py-32"
+        style={{
+          backgroundImage: "url('/bg-image.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <div className="absolute inset-0 bg-gray-900/70"></div>
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(249,115,22,0.2),transparent_50%)]" />
         </div>
@@ -61,35 +70,9 @@ export default function Home() {
                 </Link>
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1 }}
-              className="relative hidden lg:block lg:scale-110 xl:scale-125 transform origin-right"
-            >
-</motion.div>
-            </div>
           </div>
-        </section>
-
-        {/* Hero Section with Background */}
-        <section
-          className="relative min-h-screen flex items-center overflow-hidden"
-          style={{
-            backgroundImage: "url('/bg-image.png')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundRepeat: "no-repeat",
-          }}
-        >
-          {/* Dark overlay for readability */}
-          <div className="absolute inset-0 bg-gray-900/70"></div>
-
-          <div className="relative z-10 container mx-auto px-6">
-            {/* Your text content, buttons, etc. stay here */}
-          </div>
-        </section>
+        </div>
+      </section>
 
         {/* Introduction Section */}
       <section className="py-24 bg-white">
