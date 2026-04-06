@@ -68,21 +68,30 @@ export default function Home() {
               transition={{ duration: 1 }}
               className="relative hidden lg:block lg:scale-110 xl:scale-125 transform origin-right"
             >
-              <div className="relative z-10 rounded-[3rem] overflow-hidden border-8 border-white/5 shadow-2xl">
-                <img
-                  src="/bg-image.png"
-                  alt="Malaysia & Singapore Map"
-                  className="w-full h-full object-cover brightness-75 contrast-125"
-                />
-              </div>
-              <div className="absolute -top-12 -right-12 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl" />
-              <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl" />
-            </motion.div>
+</motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Introduction Section */}
+        {/* Hero Section with Background */}
+        <section
+          className="relative min-h-screen flex items-center overflow-hidden"
+          style={{
+            backgroundImage: "url('/bg-image.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          {/* Dark overlay for readability */}
+          <div className="absolute inset-0 bg-gray-900/70"></div>
+
+          <div className="relative z-10 container mx-auto px-6">
+            {/* Your text content, buttons, etc. stay here */}
+          </div>
+        </section>
+
+        {/* Introduction Section */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
