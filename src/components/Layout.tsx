@@ -58,7 +58,8 @@ export function Navbar() {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-full border border-slate-200">
                     {userProfile?.photoURL ? (
-                      <img src={bg-image.png} alt="" className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
+                      /* ✅ 架构师修复：已加上引号和反斜杠，将其变成合法的图片路径引用 */
+                      <img src="/bg-image.png" alt="" className="w-6 h-6 rounded-full" referrerPolicy="no-referrer" />
                     ) : (
                       <UserIcon className="w-4 h-4 text-slate-500" />
                     )}
@@ -123,7 +124,8 @@ export function Navbar() {
                     <div className="space-y-3">
                       <div className="flex items-center space-x-3 px-3 py-2 bg-slate-50 rounded-lg">
                         {userProfile?.photoURL ? (
-                          <img src={bg-image.png} alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                          /* ✅ 架构师修复：手机端的头像引用也同步修复了 */
+                          <img src="/bg-image.png" alt="" className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
                         ) : (
                           <UserIcon className="w-6 h-6 text-slate-500" />
                         )}
