@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import bgImage from '../components/bg-image.png';
 
 export default function Home() {
   const containerVariants = {
