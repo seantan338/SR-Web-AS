@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+
+scrap-client-contact-n-address-37fe59f16334.json

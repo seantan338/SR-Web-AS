@@ -9,6 +9,7 @@ import RecruiterDashboard from './pages/RecruiterDashboard';
 import AdminControlCenter from './pages/AdminControlCenter';
 import JobSearch from './pages/JobSearch';
 import InternalTools from './pages/InternalTools';
+import ProfileSettings from './pages/ProfileSettings'; // ✅ 架构师新增：引入 Profile 页面
 import { FirebaseProvider } from './lib/FirebaseContext';
 import ProtectedRoute from './lib/ProtectedRoute';
 import LegalModal from './components/LegalModal';
@@ -66,12 +67,21 @@ export default function App() {
                   </ProtectedRoute>
                 } 
               />
-              {/* ✅ 新增的微前端工具入口，受 Firebase 权限严格保护 */}
+              {/* ✅ 内部工具箱入口，受 Firebase 权限严格保护 */}
               <Route 
                 path="/tools" 
                 element={
                   <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
                     <InternalTools />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* ✅ 新增：个人设置与档案页面 (对标 Vimigo)，所有角色登录后可见 */}
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute allowedRoles={['candidate', 'recruiter', 'partner', 'admin']}>
+                    <ProfileSettings />
                   </ProtectedRoute>
                 } 
               />
