@@ -8,11 +8,11 @@ import CandidateDashboard from './pages/CandidateDashboard';
 import RecruiterDashboard from './pages/RecruiterDashboard';
 import AdminControlCenter from './pages/AdminControlCenter';
 import JobSearch from './pages/JobSearch';
+import InternalTools from './pages/InternalTools';
 import { FirebaseProvider } from './lib/FirebaseContext';
 import ProtectedRoute from './lib/ProtectedRoute';
 import LegalModal from './components/LegalModal';
 import ChatBot from './components/ChatBot';
-import bgImage from './components/bg-image.png';
 
 export default function App() {
   return (
@@ -20,14 +20,14 @@ export default function App() {
       <Router>
         <div 
           className="min-h-screen flex flex-col font-sans text-slate-900 antialiased relative bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: `url(${bgImage})` }}
+          style={{ backgroundImage: 'url(/bg-image.png)' }}
         >
           <div className="absolute inset-0 bg-slate-900/80 z-0 pointer-events-none" />
           <div className="relative z-10 flex flex-col min-h-screen">
             <Navbar />
             <LegalModal />
             <ChatBot />
-            <main className="flex-grow">
+            <main className="flex-grow flex flex-col">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<About />} />
@@ -63,6 +63,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <AdminControlCenter />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* ✅ 新增的微前端工具入口，受 Firebase 权限严格保护 */}
+              <Route 
+                path="/tools" 
+                element={
+                  <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
+                    <InternalTools />
                   </ProtectedRoute>
                 } 
               />
