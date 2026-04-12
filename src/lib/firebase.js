@@ -2,22 +2,21 @@ import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 从环境变量读取，或者直接贴你刚才从控制台复制的真实配置
+// 🛡️ 架构师规范：从 Vite 环境变量中动态读取配置，拒绝硬编码
 const firebaseConfig = {
-  apiKey: "AIzaSy_YOUR_REAL_API_KEY_HERE",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:abcdef123456"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// 🛡️ 架构师核心修复：防止重复初始化 (Prevent duplicate app error)
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 } else {
-  app = getApp(); // 如果已经有了，就直接获取当前实例
+  app = getApp();
 }
 
 export const auth = getAuth(app);
