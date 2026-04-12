@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { Job } from '@/src/types';
-import { db, collection, onSnapshot, query, orderBy, addDoc, OperationType, handleFirestoreError } from '@/src/firebase';
+import { db, collection, onSnapshot, query, orderBy, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 import { useFirebase } from '@/src/lib/FirebaseContext';
 
 export default function JobSearch() {

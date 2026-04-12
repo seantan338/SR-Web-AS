@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Phone, MapPin, Send, Upload, CheckCircle2, Globe, Building2, UserCircle, Handshake, Loader2 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/firebase';
+import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 
 type UserRole = 'employer' | 'candidate' | 'partner' | '';
 
