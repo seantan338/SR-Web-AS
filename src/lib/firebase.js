@@ -1,18 +1,24 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// 💡 架构师注：这里的配置必须从你的 Firebase Console -> Project Settings 里复制真实数据
+// 从环境变量读取，或者直接贴你刚才从控制台复制的真实配置
 const firebaseConfig = {
-  apiKey: "AIzaSyAulmCLERkMxm3jpohfdL0BZTEjLZ8svvA",
-  authDomain: "gen-lang-client-0473804256.firebaseapp.com",
-  projectId: "gen-lang-client-0473804256",
-  storageBucket: "gen-lang-client-0473804256.firebasestorage.app",
-  messagingSenderId: "1018738988620",
-  appId: "1:1018738988620:web:66088c9d3893ea174906e9"
+  apiKey: "AIzaSy_YOUR_REAL_API_KEY_HERE",
+  authDomain: "your-project-id.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project-id.appspot.com",
+  messagingSenderId: "1234567890",
+  appId: "1:1234567890:web:abcdef123456"
 };
 
-const app = initializeApp(firebaseConfig);
+// 🛡️ 架构师核心修复：防止重复初始化 (Prevent duplicate app error)
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp(); // 如果已经有了，就直接获取当前实例
+}
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
