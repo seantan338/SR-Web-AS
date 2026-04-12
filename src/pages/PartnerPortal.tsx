@@ -9,7 +9,7 @@ import { useFirebase } from '../lib/FirebaseContext';
 import {
   db, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot,
   query, where, orderBy, OperationType, handleFirestoreError,
-} from '../firebase';
+} from '../lib/firebase';
 import { PartnerClient, JobOrder, Application } from '../types';
 
 // ─── helpers ────────────────────────────────────────────────────────────────

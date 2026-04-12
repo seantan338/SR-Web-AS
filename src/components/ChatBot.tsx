@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MessageSquare, X, Send, Loader2, Bot, User, Sparkles, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
 import { GoogleGenAI, Type, FunctionDeclaration, GenerateContentResponse } from "@google/genai";
 import { useFirebase } from '../lib/FirebaseContext';
-import { db, collection, getDocs, query, orderBy, OperationType, handleFirestoreError } from '../firebase';
+import { db, collection, getDocs, query, orderBy, OperationType, handleFirestoreError } from '../lib/firebase';
 import { cn } from '../lib/utils';
 
 interface Message {
