@@ -40,7 +40,7 @@ if (!getApps().length) {
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// 4. 🚀 核心修复：把所有组件需要的原生 Firestore 方法全部重新导出去
+// 4. 核心修复：把所有组件需要的原生 Firestore 方法全部重新导出去
 export {
   collection,
   doc,
@@ -58,13 +58,14 @@ export {
   serverTimestamp
 };
 
-// 5. 兼容你旧代码中的特殊类型和错误处理函数
+// 5. 兼容旧代码中的特殊类型和错误处理函数
 export const OperationType = {
   ADDED: 'added',
   MODIFIED: 'modified',
   REMOVED: 'removed'
 };
 
-export const handleFirestoreError = (error: any) => {
+// 🛡️ 架构师修复：移除了 (error: any) 中的 : any，使其成为合法的原生 JS
+export const handleFirestoreError = (error) => {
   console.error("Firestore Error:", error);
 };
