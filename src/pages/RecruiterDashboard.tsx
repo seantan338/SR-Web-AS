@@ -5,7 +5,7 @@ import {
   Plus, Loader2, Building2, DollarSign, Lock, Database
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/firebase';
+import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 import { useFirebase } from '@/src/lib/FirebaseContext';
 import { Job } from '@/src/types';
 import StaffToolsLauncher from '../components/StaffToolsLauncher';

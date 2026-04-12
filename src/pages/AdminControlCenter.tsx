@@ -5,7 +5,7 @@ import {
   Lock, Eye, Loader2, CheckCircle, Search, Inbox, Mail, Building2, 
   MessageSquare, Calendar, ExternalLink 
 } from 'lucide-react';
-import { db, collection, onSnapshot, query, orderBy, updateDoc, doc, OperationType, handleFirestoreError } from '@/src/firebase';
+import { db, collection, onSnapshot, query, orderBy, updateDoc, doc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 import { UserRole, Job } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 

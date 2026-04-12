@@ -7,7 +7,7 @@ import {
   ChevronRight, Camera, Mail, Phone, Globe
 } from 'lucide-react';
 import { useFirebase } from '@/src/lib/FirebaseContext';
-import { db, collection, onSnapshot, query, where, orderBy, OperationType, handleFirestoreError, doc, updateDoc, setDoc } from '@/src/firebase';
+import { db, collection, onSnapshot, query, where, orderBy, OperationType, handleFirestoreError, doc, updateDoc, setDoc } from '@/src/lib/firebase';
 import { Job, Application } from '@/src/types';
 import { cn } from '@/src/lib/utils';
 import { Link } from 'react-router-dom';
