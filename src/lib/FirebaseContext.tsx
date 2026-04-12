@@ -1,59 +1,60 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db, onAuthStateChanged, User, doc, getDoc, setDoc, OperationType, handleFirestoreError } from '../firebase';
+import { auth, db } from './firebase'; // 确保路径指向你的 firebase.ts 初始化文件
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
+// 严格定义 UserProfile 结构，与你的 AdminControlCenter 对应
+export interface UserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  role: 'candidate' | 'recruiter' | 'partner' | 'admin';
+  createdAt: string;
+  bio?: string;
+  phone?: string;
+  location?: string;
+  website?: string;
+}
 
 interface FirebaseContextType {
   user: User | null;
-  userProfile: any | null;
+  userProfile: UserProfile | null;
   loading: boolean;
   signIn: () => Promise<void>;
-  signOut: () => Promise<void>;
-  acceptTerms: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
-const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
+const FirebaseContext = createContext<FirebaseContextType | null>(null);
 
-export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const FirebaseProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<any | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      if (user) {
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          if (userDoc.exists()) {
-            const data = userDoc.data();
-            const isAdminEmail = user.email === 'sean@sunriserecruit.com';
-            
-            // Auto-promote primary admin if they exist but don't have the role
-            if (isAdminEmail && data.role !== 'admin') {
-              const updatedProfile = { ...data, role: 'admin' };
-              await setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true });
-              setUserProfile(updatedProfile);
-            } else {
-              setUserProfile(data);
-            }
-          } else {
-            // Create a default profile for new users
-            const isAdminEmail = user.email === 'sean@sunriserecruit.com';
-            const newProfile = {
-              uid: user.uid,
-              displayName: user.displayName || 'New User',
-              email: user.email || '',
-              photoURL: user.photoURL || '',
-              role: isAdminEmail ? 'admin' : 'candidate', // Default role or admin for primary email
-              createdAt: new Date().toISOString(),
-              termsAccepted: false, // New users must accept terms
-            };
-            await setDoc(doc(db, 'users', user.uid), newProfile);
-            setUserProfile(newProfile);
-          }
-        } catch (error) {
-          handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        const userRef = doc(db, 'users', firebaseUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          // 场景 1：老用户登录
+          setUserProfile(userSnap.data() as UserProfile);
+        } else {
+          // 场景 2：第一次 Sign Up 的新用户（默认变成求职者）
+          const newUserProfile: UserProfile = {
+            uid: firebaseUser.uid,
+            displayName: firebaseUser.displayName || 'New User',
+            email: firebaseUser.email || '',
+            role: 'candidate', 
+            createdAt: new Date().toISOString(),
+          };
+          await setDoc(userRef, newUserProfile);
+          setUserProfile(newUserProfile);
         }
       } else {
+        setUser(null);
         setUserProfile(null);
       }
       setLoading(false);
@@ -62,46 +63,29 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => unsubscribe();
   }, []);
 
+  // 统一调用的 Google 登录入口
   const signIn = async () => {
-    const { signInWithPopup, googleProvider } = await import('../firebase');
+    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithPopup(auth, provider);
     } catch (error) {
-      console.error('Sign in error:', error);
+      console.error("Sign-in failed:", error);
     }
   };
 
-  const signOutUser = async () => {
-    const { signOut } = await import('../firebase');
-    try {
-      await signOut(auth);
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
-  };
-
-  const acceptTerms = async () => {
-    if (!user) return;
-    try {
-      const updatedProfile = { ...userProfile, termsAccepted: true, termsAcceptedAt: new Date().toISOString() };
-      await setDoc(doc(db, 'users', user.uid), updatedProfile, { merge: true });
-      setUserProfile(updatedProfile);
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
-    }
+  const logout = async () => {
+    await signOut(auth);
   };
 
   return (
-    <FirebaseContext.Provider value={{ user, userProfile, loading, signIn, signOut: signOutUser, acceptTerms }}>
-      {children}
+    <FirebaseContext.Provider value={{ user, userProfile, loading, signIn, logout }}>
+      {!loading && children}
     </FirebaseContext.Provider>
   );
 };
 
 export const useFirebase = () => {
   const context = useContext(FirebaseContext);
-  if (context === undefined) {
-    throw new Error('useFirebase must be used within a FirebaseProvider');
-  }
+  if (!context) throw new Error('useFirebase must be used within FirebaseProvider');
   return context;
 };

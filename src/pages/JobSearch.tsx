@@ -348,30 +348,6 @@ export default function JobSearch() {
                           </div>
                         </div>
 
-                        {/* TAFEP Compliance Note */}
-                        <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100">
-                          <div className="flex items-start space-x-4">
-                            <Sparkles className="w-6 h-6 text-orange-500 flex-shrink-0" />
-                            <div>
-                              <h5 className="font-bold text-orange-900 mb-1">TAFEP Compliant</h5>
-                              <p className="text-sm text-orange-800">
-                                This job advertisement complies with the Tripartite Guidelines on Fair Employment Practices (TAFEP). We are committed to fair and merit-based recruitment.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Safety Warning */}
-                        <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-                          <div className="flex items-start space-x-4">
-                            <AlertCircle className="w-6 h-6 text-blue-500 flex-shrink-0" />
-                            <div>
-                              <h5 className="font-bold text-blue-900 mb-1">Be careful</h5>
-                              <p className="text-sm text-blue-800 mb-3">Don’t provide your bank or credit card details when applying for jobs.</p>
-                              <button className="text-blue-600 text-sm font-bold hover:underline">Learn how to protect yourself</button>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </motion.div>
