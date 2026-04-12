@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Shield, ScrollText, FileCheck, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useFirebase } from '../lib/FirebaseContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function LegalModal() {
-  const { user, userProfile, acceptTerms, signOut } = useFirebase();
+  // ✅ 修改点 1：将 signOut 改为 logout，引入 navigate 进行路由跳转
+  const { user, userProfile, acceptTerms, logout } = useFirebase();
   const [activeTab, setActiveTab] = useState<'pdpa' | 'privacy' | 'terms'>('pdpa');
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
   const [isAccepting, setIsAccepting] = useState(false);
+  const navigate = useNavigate();
 
   // Only show if user is logged in but hasn't accepted terms
   if (!user || (userProfile && userProfile.termsAccepted)) return null;
@@ -21,8 +24,22 @@ export default function LegalModal() {
 
   const handleAccept = async () => {
     setIsAccepting(true);
-    await acceptTerms();
-    setIsAccepting(false);
+    try {
+      // ✅ 修改点 2：加上 Try Catch 破除死锁
+      await acceptTerms();
+      
+      // ✅ 修改点 3：同意后，瞬间根据被分配的 Role 弹射进对应的 Dashboard
+      if (userProfile?.role === 'admin') navigate('/admin');
+      else if (userProfile?.role === 'recruiter') navigate('/recruiter');
+      else if (userProfile?.role === 'partner') navigate('/partner');
+      else navigate('/candidate');
+
+    } catch (error) {
+      console.error("Terms acceptance failed", error);
+      alert("System error connecting to database. Please try again.");
+    } finally {
+      setIsAccepting(false); // 无论如何必须关闭转圈
+    }
   };
 
   const tabs = [
@@ -169,7 +186,7 @@ export default function LegalModal() {
           </div>
           <div className="flex items-center space-x-3 w-full sm:w-auto">
             <button
-              onClick={() => signOut()}
+              onClick={() => logout()} // ✅ 修改点 4：改为调用统一的 logout
               className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all"
             >
               Decline & Sign Out

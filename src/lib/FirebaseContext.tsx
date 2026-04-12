@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from './firebase'; // 确保路径指向你的 firebase.ts 初始化文件
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut as firebaseSignOut, User } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
-// 严格定义 UserProfile 结构，与你的 AdminControlCenter 对应
 export interface UserProfile {
   uid: string;
   displayName: string;
   email: string;
   role: 'candidate' | 'recruiter' | 'partner' | 'admin';
+  termsAccepted: boolean; // ✅ 确保这里有 termsAccepted
   createdAt: string;
   bio?: string;
   phone?: string;
@@ -22,6 +22,7 @@ interface FirebaseContextType {
   loading: boolean;
   signIn: () => Promise<void>;
   logout: () => Promise<void>;
+  acceptTerms: () => Promise<void>; // ✅ 暴露给 Modal 使用的函数
 }
 
 const FirebaseContext = createContext<FirebaseContextType | null>(null);
@@ -39,19 +40,37 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
         const userSnap = await getDoc(userRef);
 
         if (userSnap.exists()) {
-          // 场景 1：老用户登录
+          // 老用户登录
           setUserProfile(userSnap.data() as UserProfile);
         } else {
-          // 场景 2：第一次 Sign Up 的新用户（默认变成求职者）
+          // 🚀 核心架构升级：拦截邀请链接分配角色
+          const urlParams = new URLSearchParams(window.location.search);
+          const inviteRole = urlParams.get('role');
+          const inviteToken = urlParams.get('token');
+
+          let assignedRole: 'candidate' | 'recruiter' | 'partner' | 'admin' = 'candidate';
+
+          // ⚠️ POC 阶段的秘钥校验 (只要链接带有 token=SR_INVITE_888 即可成为内部人员)
+          if (inviteToken === 'SR_INVITE_888') {
+            if (inviteRole === 'admin' || inviteRole === 'recruiter' || inviteRole === 'partner') {
+              assignedRole = inviteRole;
+            }
+          }
+
           const newUserProfile: UserProfile = {
             uid: firebaseUser.uid,
             displayName: firebaseUser.displayName || 'New User',
             email: firebaseUser.email || '',
-            role: 'candidate', 
+            role: assignedRole,
+            termsAccepted: false, // 新用户强制为 false
             createdAt: new Date().toISOString(),
           };
+
           await setDoc(userRef, newUserProfile);
           setUserProfile(newUserProfile);
+          
+          // 清除网址里的邀请码，保持整洁
+          window.history.replaceState({}, document.title, "/");
         }
       } else {
         setUser(null);
@@ -63,7 +82,6 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
     return () => unsubscribe();
   }, []);
 
-  // 统一调用的 Google 登录入口
   const signIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -74,11 +92,19 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
   };
 
   const logout = async () => {
-    await signOut(auth);
+    await firebaseSignOut(auth);
+  };
+
+  // ✅ 核心：处理同意条款并更新状态
+  const acceptTerms = async () => {
+    if (!user || !userProfile) return;
+    const userRef = doc(db, 'users', user.uid);
+    await updateDoc(userRef, { termsAccepted: true });
+    setUserProfile({ ...userProfile, termsAccepted: true });
   };
 
   return (
-    <FirebaseContext.Provider value={{ user, userProfile, loading, signIn, logout }}>
+    <FirebaseContext.Provider value={{ user, userProfile, loading, signIn, logout, acceptTerms }}>
       {!loading && children}
     </FirebaseContext.Provider>
   );
