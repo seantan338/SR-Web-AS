@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
+import {
   Search, Clock, User, Info, ChevronRight,
-  Plus, Loader2, Building2, DollarSign, Lock, Database
+  Plus, Loader2, Building2, DollarSign, Lock, Database, Users
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 import { useFirebase } from '@/src/lib/FirebaseContext';
 import { Job } from '@/src/types';
 import StaffToolsLauncher from '../components/StaffToolsLauncher';
+import CandidateSearch from '../components/recruiter/CandidateSearch';
 
 export default function RecruiterDashboard() {
-  const [activeTab, setActiveTab] = useState<'secret-jobs' | 'submit-candidate'>('secret-jobs');
+  const [activeTab, setActiveTab] = useState<'secret-jobs' | 'find-candidates' | 'submit-candidate'>('find-candidates');
   const [secretJobs, setSecretJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,6 +121,16 @@ export default function RecruiterDashboard() {
           </div>
           <div className="flex bg-slate-200 p-1 rounded-xl overflow-x-auto">
             <button
+              onClick={() => setActiveTab('find-candidates')}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center",
+                activeTab === 'find-candidates' ? "bg-white text-slate-900 shadow-sm" : "text-slate-600 hover:text-slate-900"
+              )}
+            >
+              <Users className="w-4 h-4 mr-1.5" />
+              Find Candidates
+            </button>
+            <button
               onClick={() => setActiveTab('secret-jobs')}
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center",
@@ -146,6 +157,17 @@ export default function RecruiterDashboard() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             <AnimatePresence mode="wait">
+              {activeTab === 'find-candidates' && (
+                <motion.div
+                  key="find-candidates"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <CandidateSearch />
+                </motion.div>
+              )}
+
               {activeTab === 'submit-candidate' && (
                 <motion.div
                   key="submit-candidate"
