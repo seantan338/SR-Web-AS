@@ -19,7 +19,7 @@ const navItems = [
 export function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
-  const { user, userProfile, signIn, signOut, loading } = useFirebase();
+  const { user, userProfile, signIn, logout: signOut, loading } = useFirebase();
 
   const filteredNavItems = navItems.filter(item => {
     if (item.requiresAuth && !user) return false;

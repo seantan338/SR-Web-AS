@@ -44,13 +44,20 @@ export interface Job {
   salary?: string;
   description: string;
   createdAt: string;
-  // New fields for Google Sheets sync
+  updatedAt?: string;
+  status?: 'active' | 'inactive';
+  // Google Sheets sync fields
   partnerInCharge?: string;
   commissionRange?: string;
   clientRequirements?: string;
   contactDetails?: string;
   workingDay?: string;
   workingHours?: string;
+  // CSV import fields
+  salaryRange?: string;
+  workingDays?: string;
+  requirements?: string;
+  benefits?: string;
 }
 
 export interface Application {

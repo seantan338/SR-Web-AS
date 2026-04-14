@@ -40,33 +40,27 @@ export default function JobSearch() {
       // 如果 Firebase 数据库里暂时没有真实职位，自动注入高保真演示数据撑起排版
       if (jobsData.length === 0) {
         jobsData.push(
-          { 
-            id: 'mock-1', 
-            title: 'Senior Frontend Developer', 
-            company: 'Tech Corp', 
-            location: 'Kuala Lumpur', 
-            type: 'Full-time', 
-            description: 'We are looking for a React and Vite expert to lead our core product team. You will be responsible for architecture and team mentoring.', 
-            salary: 'RM 8,000 - RM 12,000', 
-            requirements: [], 
-            status: 'open', 
-            employerId: 'admin1',
-            recruiterUid: 'admin1',
-            createdAt: new Date().toISOString() 
+          {
+            id: 'mock-1',
+            title: 'Senior Frontend Developer',
+            company: 'Tech Corp',
+            location: 'Kuala Lumpur',
+            type: 'Full-time',
+            description: 'We are looking for a React and Vite expert to lead our core product team. You will be responsible for architecture and team mentoring.',
+            salary: 'RM 8,000 - RM 12,000',
+            status: 'active' as const,
+            createdAt: new Date().toISOString()
           },
-          { 
-            id: 'mock-2', 
-            title: 'HR Business Partner', 
-            company: 'Global Solutions', 
-            location: 'Penang', 
-            type: 'Contract', 
-            description: 'Seeking an experienced HR Business Partner to manage regional operations, talent acquisition, and employee relations.', 
-            salary: 'RM 6,000 - RM 9,000', 
-            requirements: [], 
-            status: 'open', 
-            employerId: 'admin2',
-            recruiterUid: 'admin2',
-            createdAt: new Date(Date.now() - 86400000).toISOString() 
+          {
+            id: 'mock-2',
+            title: 'HR Business Partner',
+            company: 'Global Solutions',
+            location: 'Penang',
+            type: 'Contract',
+            description: 'Seeking an experienced HR Business Partner to manage regional operations, talent acquisition, and employee relations.',
+            salary: 'RM 6,000 - RM 9,000',
+            status: 'active' as const,
+            createdAt: new Date(Date.now() - 86400000).toISOString()
           }
         );
       }

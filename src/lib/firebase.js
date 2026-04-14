@@ -1,21 +1,22 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { 
-  getFirestore, 
-  collection, 
-  doc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   setDoc,
   getDoc,
   getDocs,
-  onSnapshot, 
-  query, 
-  where, 
+  onSnapshot,
+  query,
+  where,
   orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from "firebase/firestore";
 
 // 1. 读取环境变量配置
@@ -55,7 +56,8 @@ export {
   where,
   orderBy,
   limit,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 };
 
 // 5. 兼容旧代码中的特殊类型和错误处理函数
