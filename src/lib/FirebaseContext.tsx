@@ -34,49 +34,56 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        const userRef = doc(db, 'users', firebaseUser.uid);
-        const userSnap = await getDoc(userRef);
+      try {
+        if (firebaseUser) {
+          setUser(firebaseUser);
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const userSnap = await getDoc(userRef);
 
-        if (userSnap.exists()) {
-          // 老用户登录
-          setUserProfile(userSnap.data() as UserProfile);
-        } else {
-          // 🚀 核心架构升级：拦截邀请链接分配角色
-          const urlParams = new URLSearchParams(window.location.search);
-          const inviteRole = urlParams.get('role');
-          const inviteToken = urlParams.get('token');
+          if (userSnap.exists()) {
+            // 老用户登录
+            setUserProfile(userSnap.data() as UserProfile);
+          } else {
+            // 🚀 核心架构升级：拦截邀请链接分配角色
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteRole = urlParams.get('role');
+            const inviteToken = urlParams.get('token');
 
-          let assignedRole: 'candidate' | 'recruiter' | 'partner' | 'admin' = 'candidate';
+            let assignedRole: 'candidate' | 'recruiter' | 'partner' | 'admin' = 'candidate';
 
-          // ⚠️ POC 阶段的秘钥校验 (只要链接带有 token=SR_INVITE_888 即可成为内部人员)
-          if (inviteToken === 'SR_INVITE_888') {
-            if (inviteRole === 'admin' || inviteRole === 'recruiter' || inviteRole === 'partner') {
-              assignedRole = inviteRole;
+            // ⚠️ POC 阶段的秘钥校验 (只要链接带有 token=SR_INVITE_888 即可成为内部人员)
+            if (inviteToken === 'SR_INVITE_888') {
+              if (inviteRole === 'admin' || inviteRole === 'recruiter' || inviteRole === 'partner') {
+                assignedRole = inviteRole;
+              }
             }
+
+            const newUserProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              displayName: firebaseUser.displayName || 'New User',
+              email: firebaseUser.email || '',
+              role: assignedRole,
+              termsAccepted: false, // 新用户强制为 false
+              createdAt: new Date().toISOString(),
+            };
+
+            await setDoc(userRef, newUserProfile);
+            setUserProfile(newUserProfile);
+
+            // 清除网址里的邀请码，保持整洁
+            window.history.replaceState({}, document.title, "/");
           }
-
-          const newUserProfile: UserProfile = {
-            uid: firebaseUser.uid,
-            displayName: firebaseUser.displayName || 'New User',
-            email: firebaseUser.email || '',
-            role: assignedRole,
-            termsAccepted: false, // 新用户强制为 false
-            createdAt: new Date().toISOString(),
-          };
-
-          await setDoc(userRef, newUserProfile);
-          setUserProfile(newUserProfile);
-          
-          // 清除网址里的邀请码，保持整洁
-          window.history.replaceState({}, document.title, "/");
+        } else {
+          setUser(null);
+          setUserProfile(null);
         }
-      } else {
+      } catch (error) {
+        console.error('FirebaseContext: Firestore error during auth state change:', error);
         setUser(null);
         setUserProfile(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();

@@ -172,5 +172,11 @@ service cloud.firestore {
       allow update: if (isOwner(resource.data.submittedBy) || isAdmin()) && isValidCandidateSubmission(request.resource.data);
       allow delete: if (isOwner(resource.data.submittedBy) || isAdmin());
     }
+
+    // Inquiries (contact form) — anyone can submit; only recruiters/admins can read
+    match /inquiries/{id} {
+      allow create: if true;
+      allow read, update, delete: if isRecruiter() || isAdmin();
+    }
   }
 }
