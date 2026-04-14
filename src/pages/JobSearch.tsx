@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Search, MapPin, Briefcase, Clock, Bookmark, X, 
+import {
+  Search, MapPin, Briefcase, Clock, Bookmark, X,
   ChevronRight, Share2, MoreHorizontal, Sparkles,
   Building2, DollarSign, Calendar, AlertCircle, Info,
   CheckCircle2, HelpCircle, Loader2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import { Job } from '@/src/types';
-import { db, collection, onSnapshot, query, orderBy, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
+import { db, collection, onSnapshot, query, orderBy, limit, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
 import { useFirebase } from '@/src/lib/FirebaseContext';
 
 export default function JobSearch() {
@@ -21,52 +22,67 @@ export default function JobSearch() {
   const [isDetailOpen, setIsDetailOpen] = useState(true);
   const [applying, setApplying] = useState(false);
   const [visibleJobsCount, setVisibleJobsCount] = useState(20);
-  const { user, userProfile, signIn } = useFirebase();
+  const { user, userProfile } = useFirebase();
+  const navigate = useNavigate();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setVisibleJobsCount(20);
   }, [searchQuery, locationQuery]);
 
   useEffect(() => {
-    // 🚀 架构师终极修复：彻底废弃报错的 /api/jobs，直连 Firebase Firestore 实时数据库
-    const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
-    
+    // 8-second timeout — shows error if Firestore doesn't respond
+    timeoutRef.current = setTimeout(() => {
+      setError('Connection timed out. Please check your network and try again.');
+      setLoading(false);
+    }, 8000);
+
+    const q = query(
+      collection(db, 'jobs'),
+      orderBy('createdAt', 'desc'),
+      limit(20)
+    );
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
       const jobsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Job[];
 
-      // 如果 Firebase 数据库里暂时没有真实职位，自动注入高保真演示数据撑起排版
+      // Show demo jobs when Firestore collection is empty
       if (jobsData.length === 0) {
         jobsData.push(
-          { 
-            id: 'mock-1', 
-            title: 'Senior Frontend Developer', 
-            company: 'Tech Corp', 
-            location: 'Kuala Lumpur', 
-            type: 'Full-time', 
-            description: 'We are looking for a React and Vite expert to lead our core product team. You will be responsible for architecture and team mentoring.', 
-            salary: 'RM 8,000 - RM 12,000', 
-            requirements: [], 
-            status: 'open', 
-            employerId: 'admin1',
-            recruiterUid: 'admin1',
-            createdAt: new Date().toISOString() 
+          {
+            id: 'mock-1',
+            title: 'Senior Frontend Developer',
+            company: 'Confidential Client',
+            location: 'Kuala Lumpur',
+            type: 'Full-time',
+            description: 'We are looking for a React and TypeScript expert to lead our core product team. You will be responsible for architecture decisions, code reviews, and mentoring junior developers.\n\nRequirements:\n• 5+ years React experience\n• Strong TypeScript skills\n• Experience with state management (Redux/Zustand)\n• CI/CD pipeline knowledge',
+            salary: 'RM 8,000 - RM 12,000',
+            createdAt: new Date().toISOString()
           },
-          { 
-            id: 'mock-2', 
-            title: 'HR Business Partner', 
-            company: 'Global Solutions', 
-            location: 'Penang', 
-            type: 'Contract', 
-            description: 'Seeking an experienced HR Business Partner to manage regional operations, talent acquisition, and employee relations.', 
-            salary: 'RM 6,000 - RM 9,000', 
-            requirements: [], 
-            status: 'open', 
-            employerId: 'admin2',
-            recruiterUid: 'admin2',
-            createdAt: new Date(Date.now() - 86400000).toISOString() 
+          {
+            id: 'mock-2',
+            title: 'HR Business Partner',
+            company: 'Confidential Client',
+            location: 'Johor Bahru',
+            type: 'Permanent',
+            description: 'Seeking an experienced HR Business Partner to manage regional operations across the MY-SG corridor. You will drive talent acquisition, employee relations, and strategic HR initiatives.\n\nRequirements:\n• 4+ years HR experience\n• Knowledge of Malaysian & Singapore labour law\n• Strong stakeholder management skills',
+            salary: 'RM 6,000 - RM 9,000',
+            createdAt: new Date(Date.now() - 86400000).toISOString()
+          },
+          {
+            id: 'mock-3',
+            title: 'Supply Chain Manager',
+            company: 'Confidential Client',
+            location: 'Singapore',
+            type: 'Permanent',
+            description: 'A leading manufacturing firm is seeking a Supply Chain Manager to optimise logistics, vendor relationships, and inventory management across APAC.\n\nRequirements:\n• Degree in Supply Chain, Logistics, or related field\n• 6+ years supply chain experience\n• Strong analytical and ERP skills (SAP preferred)',
+            salary: 'SGD 7,000 - SGD 10,000',
+            createdAt: new Date(Date.now() - 172800000).toISOString()
           }
         );
       }
@@ -74,22 +90,24 @@ export default function JobSearch() {
       setJobs(jobsData);
       setError(null);
       setLoading(false);
-      
-      // 确保默认选中第一个职位
       setSelectedJob(prev => prev ? prev : jobsData[0]);
     }, (err) => {
-      console.error('Firebase Realtime Fetch Error:', err);
-      setError('Database connection failed: ' + err.message);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      console.error('Firestore fetch error:', err);
+      setError('Database connection failed. Please try again later.');
       setLoading(false);
     });
 
-    // 组件卸载时取消监听，防止内存泄漏
-    return () => unsubscribe();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      unsubscribe();
+    };
   }, []);
 
   const handleApply = async () => {
     if (!user) {
-      signIn();
+      // Send unauthenticated users to the contact form with job pre-filled
+      navigate(`/contact?role=candidate&jobTitle=${encodeURIComponent(selectedJob?.title || '')}`);
       return;
     }
     if (!selectedJob) return;

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Phone, MapPin, Send, Upload, CheckCircle2, Globe, Building2, UserCircle, Handshake, Loader2 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
@@ -7,10 +8,19 @@ import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/s
 type UserRole = 'employer' | 'candidate' | 'partner' | '';
 
 export default function Contact() {
+  const [searchParams] = useSearchParams();
   const [role, setRole] = useState<UserRole>('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<any>({});
+
+  // Pre-fill form when arriving from job listings
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    const jobTitleParam = searchParams.get('jobTitle');
+    if (roleParam === 'candidate') setRole('candidate');
+    if (jobTitleParam) setFormData((prev: any) => ({ ...prev, currentJobTitle: jobTitleParam }));
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
