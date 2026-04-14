@@ -1,5 +1,40 @@
 export type UserRole = 'admin' | 'recruiter' | 'partner' | 'candidate';
 
+export interface WorkExperienceEntry {
+  id?: string;
+  company: string;
+  title: string;
+  startDate: string;
+  endDate?: string;
+  current: boolean;
+  description?: string;
+}
+
+export interface EducationEntry {
+  id?: string;
+  institution: string;
+  degree: string;
+  field: string;
+  startYear: number;
+  endYear?: number;
+}
+
+export interface CandidateProfile {
+  uid?: string;
+  displayName?: string;
+  email?: string;
+  title?: string;
+  location?: string;
+  bio?: string;
+  summary?: string;
+  skills?: string[];
+  availability?: string;
+  profilePhoto?: string;
+  resumeUrl?: string;
+  phone?: string;
+  website?: string;
+}
+
 export interface Job {
   id: string;
   title: string;
