@@ -1,182 +1,32 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ===============================================================
-    // Assumed Data Model
-    // ===============================================================
-    //
-    // Collection: users
-    // Document ID: {userId} (matches request.auth.uid)
-    // Fields:
-    //   - uid: string (required) - The unique identifier for the user.
-    //   - displayName: string (required) - The user's full name.
-    //   - email: string (required, email format) - The user's email address.
-    //   - photoURL: string (optional, uri format) - The user's profile picture URL.
-    //   - role: string (required, enum: candidate, recruiter, admin) - The user's role.
-    //   - bio: string (optional) - A short biography.
-    //   - createdAt: string (optional, date-time format) - Creation timestamp.
-    //
-    // Collection: jobs
-    // Document ID: {jobId}
-    // Fields:
-    //   - id: string (optional) - The unique identifier for the job.
-    //   - title: string (required) - The job title.
-    //   - company: string (required) - The company name.
-    //   - location: string (required) - The job location.
-    //   - description: string (required) - The job description.
-    //   - salary: string (optional) - The salary range.
-    //   - type: string (optional, enum: full-time, part-time, contract, freelance) - The job type.
-    //   - recruiterUid: string (required) - The UID of the recruiter who posted the job.
-    //   - createdAt: string (optional, date-time format) - Creation timestamp.
-    //
-    // Collection: applications
-    // Document ID: {applicationId}
-    // Fields:
-    //   - id: string (optional) - The unique identifier for the application.
-    //   - jobId: string (required) - The ID of the job being applied for.
-    //   - candidateUid: string (required) - The UID of the candidate who applied.
-    //   - status: string (required, enum: pending, reviewed, interviewing, hired, rejected) - The application status.
-    //   - resumeUrl: string (optional, uri format) - The URL of the candidate's resume.
-    //   - coverLetter: string (optional) - The candidate's cover letter.
-    //   - createdAt: string (optional, date-time format) - Creation timestamp.
-    //
-    // ===============================================================
-
-    // ===============================================================
-    // Helper Functions
-    // ===============================================================
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() &&
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "sean@sunriserecruit.com" && request.auth.token.email_verified == true));
-    }
-
-    function isRecruiter() {
-      return isAuthenticated() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['recruiter', 'partner', 'admin']);
-    }
-
-    function isPartner() {
-      return isAuthenticated() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['partner', 'admin']);
-    }
-
-    function isValidEmail(email) {
-      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    }
-
-    function isValidUrl(url) {
-      return url is string && (url.matches("^https://.*") || url.matches("^http://.*"));
-    }
-
-    // ===============================================================
-    // Domain Validators
-    // ===============================================================
-    function isValidUser(data) {
-      return data.keys().hasAll(['uid', 'displayName', 'email', 'role']) &&
-             data.uid == request.auth.uid &&
-             data.displayName is string && data.displayName.size() > 0 && data.displayName.size() < 100 &&
-             isValidEmail(data.email) &&
-             data.role in ['candidate', 'recruiter', 'partner', 'admin'];
-    }
-
-    function isValidJob(data) {
-      return data.keys().hasAll(['title', 'company', 'location', 'description', 'recruiterUid']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
-             data.company is string && data.company.size() > 0 && data.company.size() < 100 &&
-             data.location is string && data.location.size() > 0 && data.location.size() < 100 &&
-             data.description is string && data.description.size() > 0 && data.description.size() < 5000 &&
-             data.recruiterUid == request.auth.uid;
-    }
-
-    function isValidApplication(data) {
-      return data.keys().hasAll(['jobId', 'candidateUid', 'status']) &&
-             data.jobId is string &&
-             data.candidateUid == request.auth.uid &&
-             data.status in ['pending', 'reviewed', 'interviewing', 'hired', 'rejected'];
-    }
-
-    function isValidCandidateSubmission(data) {
-      return data.keys().hasAll(['candidateName', 'candidateEmail', 'submittedBy', 'submittedAt']) &&
-             data.candidateName is string && data.candidateName.size() > 0 &&
-             isValidEmail(data.candidateEmail) &&
-             data.submittedBy == request.auth.uid;
-    }
-
-    function isValidSecretJob(data) {
-      return data.keys().hasAll(['title', 'company', 'location', 'description', 'recruiterUid', 'commission', 'partnerInCharge']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
-             data.company is string && data.company.size() > 0 && data.company.size() < 100 &&
-             data.location is string && data.location.size() > 0 && data.location.size() < 100 &&
-             data.description is string && data.description.size() > 0 && data.description.size() < 5000 &&
-             data.commission is string && data.commission.size() > 0 &&
-             data.partnerInCharge is string && data.partnerInCharge.size() > 0 &&
-             data.recruiterUid == request.auth.uid;
-    }
-
-    // ===============================================================
-    // Rules
-    // ===============================================================
-
-    // Users collection
-    match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role != 'admin' || isAdmin());
-      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
-    }
-
-    // Jobs collection
     match /jobs/{jobId} {
-      allow read: if true; // Publicly readable for job search
-      allow create: if (isRecruiter() || isAdmin()) && isValidJob(request.resource.data);
-      allow update: if (isOwner(resource.data.recruiterUid) || isAdmin()) && isValidJob(request.resource.data);
-      allow delete: if (isOwner(resource.data.recruiterUid) || isAdmin());
+      allow read: if true;
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['recruiter', 'admin'];
     }
-
-    // Secret Jobs collection
-    match /secret-jobs/{jobId} {
-      allow read: if isRecruiter() || isPartner() || isAdmin();
-      allow create: if (isRecruiter() || isAdmin()) && isValidSecretJob(request.resource.data);
-      allow update: if (isOwner(resource.data.recruiterUid) || isAdmin()) && isValidSecretJob(request.resource.data);
-      allow delete: if (isOwner(resource.data.recruiterUid) || isAdmin());
-    }
-
-    // Applications collection
-    match /applications/{applicationId} {
-      allow read: if isAuthenticated() && (
-        isOwner(resource.data.candidateUid) || 
-        isOwner(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.recruiterUid) ||
-        isAdmin()
-      );
-      allow create: if isAuthenticated() && isValidApplication(request.resource.data);
-      allow update: if isAuthenticated() && (
-        (isOwner(resource.data.candidateUid) && request.resource.data.status == resource.data.status && isValidApplication(request.resource.data)) ||
-        (isOwner(get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.recruiterUid) && 
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
-         request.resource.data.status in ['pending', 'reviewed', 'interviewing', 'hired', 'rejected']) ||
-        isAdmin()
-      );
-      allow delete: if isOwner(resource.data.candidateUid) || isAdmin();
-    }
-
-    // Candidate Submissions collection
-    match /candidate-submissions/{submissionId} {
-      allow read: if isRecruiter() || isPartner() || isAdmin();
-      allow create: if (isRecruiter() || isAdmin()) && isValidCandidateSubmission(request.resource.data);
-      allow update: if (isOwner(resource.data.submittedBy) || isAdmin()) && isValidCandidateSubmission(request.resource.data);
-      allow delete: if (isOwner(resource.data.submittedBy) || isAdmin());
-    }
-
-    // Inquiries (contact form) — anyone can submit; only recruiters/admins can read
     match /inquiries/{id} {
       allow create: if true;
-      allow read, update, delete: if isRecruiter() || isAdmin();
+      allow read, update, delete: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['recruiter', 'admin'];
+    }
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    match /applications/{appId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && (request.auth.uid == resource.data.candidateId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['recruiter', 'admin']);
+      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['recruiter', 'admin'];
+    }
+    match /notifications/{notifId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null;
+    }
+    match /interviews/{id} {
+      allow read, write: if request.auth != null;
+    }
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
