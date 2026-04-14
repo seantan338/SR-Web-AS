@@ -12,8 +12,8 @@ export default function LegalModal() {
   const [isAccepting, setIsAccepting] = useState(false);
   const navigate = useNavigate();
 
-  // Only show if user is logged in but hasn't accepted terms
-  if (!user || (userProfile && userProfile.termsAccepted)) return null;
+  // Only show if user is logged in but hasn't accepted legal terms
+  if (!user || (userProfile && userProfile.legalAccepted)) return null;
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
@@ -23,22 +23,22 @@ export default function LegalModal() {
   };
 
   const handleAccept = async () => {
+    if (!userProfile) return;
     setIsAccepting(true);
     try {
-      // ✅ 修改点 2：加上 Try Catch 破除死锁
       await acceptTerms();
-      
-      // ✅ 修改点 3：同意后，瞬间根据被分配的 Role 弹射进对应的 Dashboard
-      if (userProfile?.role === 'admin') navigate('/admin');
-      else if (userProfile?.role === 'recruiter') navigate('/recruiter');
-      else if (userProfile?.role === 'partner') navigate('/partner');
+
+      // Redirect to the user's role-appropriate dashboard
+      if (userProfile.role === 'admin') navigate('/admin');
+      else if (userProfile.role === 'recruiter') navigate('/recruiter');
+      else if (userProfile.role === 'partner') navigate('/partner');
       else navigate('/candidate');
 
     } catch (error) {
-      console.error("Terms acceptance failed", error);
-      alert("System error connecting to database. Please try again.");
+      console.error('Legal acceptance failed:', error);
+      alert('Unable to save your acceptance. Please check your connection and try again.');
     } finally {
-      setIsAccepting(false); // 无论如何必须关闭转圈
+      setIsAccepting(false);
     }
   };
 

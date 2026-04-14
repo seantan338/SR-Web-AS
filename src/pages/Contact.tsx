@@ -1,21 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Phone, MapPin, Send, Upload, CheckCircle2, Globe, Building2, UserCircle, Handshake, Loader2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Upload, CheckCircle2, Globe, Building2, UserCircle, Handshake, Loader2, AlertCircle } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { db, collection, addDoc, OperationType, handleFirestoreError } from '@/src/lib/firebase';
+import { db, collection, addDoc } from '@/src/lib/firebase';
 
 type UserRole = 'employer' | 'candidate' | 'partner' | '';
 
 export default function Contact() {
+  const [searchParams] = useSearchParams();
   const [role, setRole] = useState<UserRole>('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState<any>({});
+
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'employer' || roleParam === 'candidate' || roleParam === 'partner') {
+      setRole(roleParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+    setSubmitError('');
+
     try {
       const submissionData = {
         ...formData,
@@ -26,7 +37,7 @@ export default function Contact() {
       // 1. Save to Firestore
       await addDoc(collection(db, 'inquiries'), submissionData);
 
-      // 2. Sync to Google Sheets
+      // 2. Sync to Google Sheets (best-effort — failure doesn't block submission)
       try {
         await fetch('/api/sync-sheet', {
           method: 'POST',
@@ -59,7 +70,8 @@ export default function Contact() {
 
       setIsSubmitted(true);
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'inquiries');
+      console.error('Inquiry submission failed:', error);
+      setSubmitError('Something went wrong. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -98,8 +110,8 @@ export default function Contact() {
           <p className="text-slate-600 mb-8 leading-relaxed">
             {getAutoResponse()}
           </p>
-          <button 
-            onClick={() => { setIsSubmitted(false); setRole(''); }}
+          <button
+            onClick={() => { setIsSubmitted(false); setRole(''); setFormData({}); setSubmitError(''); }}
             className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition-all"
           >
             Send Another Message
@@ -522,8 +534,15 @@ export default function Contact() {
                           </p>
                         </div>
 
-                        <button 
-                          type="submit" 
+                        {submitError && (
+                          <div className="flex items-start space-x-3 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                            <p className="text-sm text-red-700 font-medium">{submitError}</p>
+                          </div>
+                        )}
+
+                        <button
+                          type="submit"
                           disabled={isSubmitting}
                           className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center group disabled:opacity-50"
                         >

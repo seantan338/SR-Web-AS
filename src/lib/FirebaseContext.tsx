@@ -8,7 +8,8 @@ export interface UserProfile {
   displayName: string;
   email: string;
   role: 'candidate' | 'recruiter' | 'partner' | 'admin';
-  termsAccepted: boolean; // ✅ 确保这里有 termsAccepted
+  legalAccepted: boolean;
+  legalAcceptedAt?: string;
   createdAt: string;
   bio?: string;
   phone?: string;
@@ -62,7 +63,7 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
             displayName: firebaseUser.displayName || 'New User',
             email: firebaseUser.email || '',
             role: assignedRole,
-            termsAccepted: false, // 新用户强制为 false
+            legalAccepted: false,
             createdAt: new Date().toISOString(),
           };
 
@@ -95,12 +96,12 @@ export const FirebaseProvider = ({ children }: { children: React.ReactNode }) =>
     await firebaseSignOut(auth);
   };
 
-  // ✅ 核心：处理同意条款并更新状态
   const acceptTerms = async () => {
-    if (!user || !userProfile) return;
+    if (!user || !userProfile) throw new Error('User not authenticated');
+    const acceptedAt = new Date().toISOString();
     const userRef = doc(db, 'users', user.uid);
-    await updateDoc(userRef, { termsAccepted: true });
-    setUserProfile({ ...userProfile, termsAccepted: true });
+    await updateDoc(userRef, { legalAccepted: true, legalAcceptedAt: acceptedAt });
+    setUserProfile({ ...userProfile, legalAccepted: true, legalAcceptedAt: acceptedAt });
   };
 
   return (
