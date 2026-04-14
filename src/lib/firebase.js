@@ -38,7 +38,7 @@ if (!getApps().length) {
 
 // 3. 核心实例导出
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getFirestore(app, 'ai-studio');
 
 // 4. 核心修复：把所有组件需要的原生 Firestore 方法全部重新导出去
 export {
